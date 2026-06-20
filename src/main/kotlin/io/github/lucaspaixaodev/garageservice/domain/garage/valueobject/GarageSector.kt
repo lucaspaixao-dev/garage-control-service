@@ -10,6 +10,6 @@ enum class GarageSector {
 
         fun of(value: String): GarageSector =
             entries.firstOrNull { it.name.equals(value.trim(), ignoreCase = true) }
-                ?: throw GarageException.InvalidSector(value, entries.joinToString { it.name })
+                ?: throw GarageException.InvalidSector(value = value, allowed = entries.joinToString { it.name })
     }
 }

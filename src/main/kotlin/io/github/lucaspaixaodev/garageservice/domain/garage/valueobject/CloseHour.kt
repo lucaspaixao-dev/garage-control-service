@@ -16,7 +16,7 @@ value class CloseHour(val value: LocalTime) {
             try {
                 CloseHour(LocalTime.parse(value, FORMATTER))
             } catch (exception: DateTimeParseException) {
-                throw GarageException.InvalidCloseHour(value, exception)
+                throw GarageException.InvalidCloseHour(value = value, cause = exception)
             }
     }
 

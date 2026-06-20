@@ -6,7 +6,7 @@ import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
 value class Longitude(val value: Double) {
 
     init {
-        if (value !in MIN..MAX) throw SpotException.InvalidLongitude(value, MIN, MAX)
+        if (value !in MIN..MAX) throw SpotException.InvalidLongitude(value = value, min = MIN, max = MAX)
     }
 
     companion object {

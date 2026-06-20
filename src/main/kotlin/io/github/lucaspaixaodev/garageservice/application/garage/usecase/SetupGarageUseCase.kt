@@ -35,7 +35,7 @@ class SetupGarageUseCase(
 
         val spots = data.spots.map { spot ->
             val garage = garagesBySector[GarageSector.of(spot.sector)]
-                ?: throw SpotException.GarageNotFoundForSector(spot.externalId, spot.sector)
+                ?: throw SpotException.GarageNotFoundForSector(externalId = spot.externalId, sector = spot.sector)
             spot.toSpot(garage)
         }
         spotRepository.saveAll(spots)

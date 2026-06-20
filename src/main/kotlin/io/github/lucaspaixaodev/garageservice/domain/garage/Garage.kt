@@ -25,7 +25,15 @@ class Garage private constructor(
             open: String,
             close: String,
             durationLimit: Int
-        ): Garage = build(Id.generate(), sector, basePrice, open, close, durationLimit)
+        ): Garage =
+            build(
+                id = Id.generate(),
+                sector = sector,
+                basePrice = basePrice,
+                open = open,
+                close = close,
+                durationLimit = durationLimit,
+            )
 
         fun restore(
             id: String,
@@ -34,7 +42,15 @@ class Garage private constructor(
             open: String,
             close: String,
             durationLimit: Int
-        ): Garage = build(Id.of(id), sector, basePrice, open, close, durationLimit)
+        ): Garage =
+            build(
+                id = Id.of(id),
+                sector = sector,
+                basePrice = basePrice,
+                open = open,
+                close = close,
+                durationLimit = durationLimit,
+            )
 
         private fun build(
             id: Id,
@@ -48,7 +64,10 @@ class Garage private constructor(
             val closeHour = CloseHour.of(close)
 
             if (closeHour.isBefore(openHour)) {
-                throw GarageException.CloseHourBeforeOpenHour(openHour.toString(), closeHour.toString())
+                throw GarageException.CloseHourBeforeOpenHour(
+                    openHour = openHour.toString(),
+                    closeHour = closeHour.toString(),
+                )
             }
 
             return Garage(
