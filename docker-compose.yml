@@ -16,5 +16,85 @@ services:
       timeout: 5s
       retries: 5
 
+  garage-sim:
+    image: cfontes0estapar/garage-sim:1.0.0
+    container_name: garage-sim
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    environment:
+      - CLIENT_WEBHOOK_URL=http://host.docker.internal:3003/webhook
+    extra_hosts:
+      # host-gateway keeps host.docker.internal working on Linux too.
+      - "host.docker.internal:host-gateway"
+
+  localstack:
+    image: localstack/localstack:4
+    container_name: garage-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs,dynamodb
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+      # Emit queue URLs as http://localstack:4566/queue/... using path style + the
+      # Docker service name as the host. That host resolves for in-network UIs
+      # (sqs-admin); host apps reach LocalStack via their explicit endpoint override,
+      # so they're unaffected by the URL host.
+      - SQS_ENDPOINT_STRATEGY=path
+      - LOCALSTACK_HOST=localstack:4566
+    volumes:
+      - ./localstack/init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal sqs list-queues && awslocal dynamodb list-tables"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # Browser UI for DynamoDB -> http://localhost:8001
+  dynamodb-admin:
+    image: aaronshaf/dynamodb-admin:latest
+    container_name: garage-dynamodb-admin
+    ports:
+      - "8001:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://localstack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      - localstack
+
+  # Browser UI for SQS (PacoVK/sqs-admin) -> http://localhost:3999
+  sqs-admin:
+    image: pacovk/sqs-admin:latest
+    container_name: garage-sqs-admin
+    ports:
+      - "3999:3999"
+    environment:
+      - SQS_ENDPOINT_URL=http://localstack:4566
+      - SQS_AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    depends_on:
+      - localstack
+
+  # Code quality dashboard -> http://localhost:9000
+  sonarqube:
+    image: sonarqube:community
+    container_name: garage-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      # Skips the Elasticsearch bootstrap checks (needed on some Docker hosts).
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+
 volumes:
   garage-pgdata:
+  sonarqube-data:
+  sonarqube-extensions:
+  sonarqube-logs:
