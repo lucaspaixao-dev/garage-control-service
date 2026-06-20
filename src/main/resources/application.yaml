@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: garage-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/garage}
+    username: ${SPRING_DATASOURCE_USERNAME:garage}
+    password: ${SPRING_DATASOURCE_PASSWORD:garage}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+garage:
+  api:
+    base-url: ${GARAGE_API_BASE_URL:http://localhost:3003}
+
+server:
+  port: ${SERVER_PORT:8080}
