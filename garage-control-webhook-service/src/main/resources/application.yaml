@@ -1,0 +1,22 @@
+
+spring:
+  application:
+    name: garage-control-webhook-service
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+      # Points every AWS client at LocalStack in local/dev; unset in real envs.
+      endpoint: ${AWS_ENDPOINT:http://localhost:4566}
+
+webhook:
+  dynamodb:
+    table-name: ${WEBHOOK_TABLE:webhook_events}
+  sqs:
+    queue-name: ${VEHICLE_EVENTS_QUEUE:vehicle-events.fifo}
+
+server:
+  port: ${SERVER_PORT:3003}
