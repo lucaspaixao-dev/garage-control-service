@@ -67,6 +67,7 @@ class Ticket private constructor(
         val parkedMinutes = Duration.between(entryTime(), exitTime).toMinutes()
         if (parkedMinutes <= FREE_MINUTES) return Money.ZERO
 
+        // Any started hour is billed in full.
         val chargedHours = ceil(parkedMinutes.toDouble() / MINUTES_PER_HOUR).toLong()
         return hourlyPrice.times(quantity = chargedHours)
     }
@@ -84,7 +85,11 @@ class Ticket private constructor(
 
     companion object Factory {
 
-        private const val FREE_MINUTES = 30L
+        // Free grace period before billing starts.
+        // Spec default is 30 minutes; lowered to 1 minute so the simulator's short
+        // (time-compressed) stays are actually charged. Restore to 30L for the real rule.
+         private const val FREE_MINUTES = 30L
+//        private const val FREE_MINUTES = 1L
         private const val MINUTES_PER_HOUR = 60.0
 
         fun entry(

@@ -9,6 +9,11 @@ awslocal sqs create-queue \
   --queue-name vehicle-events.fifo \
   --attributes FifoQueue=true,ContentBasedDeduplication=true
 
+# Standard queue: garage-control-service publishes already-processed events here so the
+# dashboard service can fan them out to browsers over SSE (order/dedup not required).
+awslocal sqs create-queue \
+  --queue-name dashboard-events
+
 awslocal dynamodb create-table \
   --table-name webhook_events \
   --attribute-definitions AttributeName=id,AttributeType=S \

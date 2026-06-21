@@ -3,6 +3,7 @@ package io.github.lucaspaixaodev.garageservice.infra.input.messaging
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.RegisterVehicleEventUseCase
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.VehicleEventCommand
 import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
+import io.github.lucaspaixaodev.garageservice.infra.output.messaging.DashboardEventPublisher
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -17,7 +18,12 @@ import org.junit.jupiter.api.Test
 class VehicleEventConsumerTest {
 
     private val registerVehicleEvent = mockk<RegisterVehicleEventUseCase>()
-    private val consumer = VehicleEventConsumer(registerVehicleEvent = registerVehicleEvent)
+    private val dashboardEventPublisher = mockk<DashboardEventPublisher>(relaxed = true)
+    private val consumer =
+        VehicleEventConsumer(
+            registerVehicleEvent = registerVehicleEvent,
+            dashboardEventPublisher = dashboardEventPublisher,
+        )
 
     @Test
     fun `maps an ENTRY message to a command parsing the ISO entry time`() {
@@ -39,6 +45,7 @@ class VehicleEventConsumerTest {
         assertEquals(LocalDateTime.parse("2025-01-01T12:00:00"), command.captured.entryTime)
         assertNull(command.captured.latitude)
         verify(exactly = 1) { registerVehicleEvent.execute(command = any()) }
+        verify(exactly = 1) { dashboardEventPublisher.publish(type = "ENTRY", licensePlate = "ZUL0001") }
     }
 
     @Test

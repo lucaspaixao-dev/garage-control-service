@@ -39,6 +39,14 @@ class RegisterVehicleEventUseCase(
     }
 
     private fun handleEntry(command: VehicleEventCommand) {
+        // Defensive capacity guard: if the garage is already full there is nowhere to park,
+        // so don't open a ticket. (The simulator already self-limits, but another producer
+        // might not.) Skipped silently, like orphan events.
+        if (currentOccupancy().isFull) {
+            logger.warn("Skipping ENTRY for '${command.licensePlate}': garage is full")
+            return
+        }
+
         val ticket =
             Ticket.entry(
                 licensePlate = command.licensePlate,
@@ -102,6 +110,13 @@ class RegisterVehicleEventUseCase(
         ticket.exit(exitTime = command.exitTime ?: LocalDateTime.now())
         ticketRepository.save(ticket = ticket)
     }
+
+    /** Overall occupancy as it stands now (occupied spots / total spots). */
+    private fun currentOccupancy(): OccupancyRate =
+        OccupancyRate.of(
+            occupied = spotRepository.countOccupied(),
+            total = spotRepository.countTotal(),
+        )
 
     /** Overall occupancy including the vehicle that is parking right now. */
     private fun occupancyAfterParking(): OccupancyRate =

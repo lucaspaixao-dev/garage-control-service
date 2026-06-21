@@ -19,6 +19,7 @@ sonar {
             listOf(
                 "garage-control-service/build/reports/kover/report.xml",
                 "garage-control-webhook-service/build/reports/kover/report.xml",
+                "garage-control-dashboard-service/build/reports/kover/report.xml",
             ).joinToString(","),
         )
         property(
@@ -44,5 +45,6 @@ tasks.named("sonar") {
     dependsOn(
         ":garage-control-service:koverXmlReport",
         ":garage-control-webhook-service:koverXmlReport",
+        ":garage-control-dashboard-service:koverXmlReport",
     )
 }

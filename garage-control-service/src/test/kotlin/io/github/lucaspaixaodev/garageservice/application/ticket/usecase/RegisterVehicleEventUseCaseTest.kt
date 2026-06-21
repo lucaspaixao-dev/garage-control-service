@@ -94,8 +94,10 @@ class RegisterVehicleEventUseCaseTest {
     }
 
     @Test
-    fun `entry opens and saves a new ticket`() {
+    fun `entry opens and saves a new ticket when the garage has room`() {
         firstTime()
+        every { spotRepository.countOccupied() } returns 4
+        every { spotRepository.countTotal() } returns 10
         val saved = slot<Ticket>()
         every { ticketRepository.save(ticket = capture(saved)) } answers { saved.captured }
 
@@ -104,6 +106,17 @@ class RegisterVehicleEventUseCaseTest {
         assertEquals("ZUL0001", saved.captured.vehicle.licensePlate)
         assertEquals(TicketStatus.OPEN, saved.captured.status)
         verify(exactly = 1) { ticketRepository.save(ticket = any()) }
+    }
+
+    @Test
+    fun `entry is skipped when the garage is full`() {
+        firstTime()
+        every { spotRepository.countOccupied() } returns 10
+        every { spotRepository.countTotal() } returns 10
+
+        useCase.execute(command = command(type = TicketEventType.ENTRY))
+
+        verify(exactly = 0) { ticketRepository.save(ticket = any()) }
     }
 
     @Test

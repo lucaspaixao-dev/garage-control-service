@@ -30,6 +30,8 @@ garage:
     base-url: ${GARAGE_API_BASE_URL:http://localhost:3000}
   events:
     queue-name: ${VEHICLE_EVENTS_QUEUE:vehicle-events.fifo}
+  dashboard:
+    queue-name: ${DASHBOARD_EVENTS_QUEUE:dashboard-events}
 
 server:
   port: ${SERVER_PORT:8080}

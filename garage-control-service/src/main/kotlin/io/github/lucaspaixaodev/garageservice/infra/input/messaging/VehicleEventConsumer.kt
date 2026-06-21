@@ -4,6 +4,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.RegisterVehicleEventUseCase
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.VehicleEventCommand
 import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
+import io.github.lucaspaixaodev.garageservice.infra.output.messaging.DashboardEventPublisher
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import org.slf4j.LoggerFactory
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class VehicleEventConsumer(
-    private val registerVehicleEvent: RegisterVehicleEventUseCase
+    private val registerVehicleEvent: RegisterVehicleEventUseCase,
+    private val dashboardEventPublisher: DashboardEventPublisher,
 ) {
 
     private companion object {
@@ -23,6 +25,8 @@ class VehicleEventConsumer(
         logger.info("Received vehicle event plate=${message.licensePlate} type=${message.eventType}")
 
         registerVehicleEvent.execute(command = message.toCommand())
+        // The use case has committed; forward the headline to the dashboard service for live streaming.
+        dashboardEventPublisher.publish(type = message.eventType, licensePlate = message.licensePlate)
 
         logger.info("Processed vehicle event plate=${message.licensePlate} type=${message.eventType}")
     }
