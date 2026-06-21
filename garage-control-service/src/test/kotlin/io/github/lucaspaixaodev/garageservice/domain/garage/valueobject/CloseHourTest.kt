@@ -1,12 +1,12 @@
 package io.github.lucaspaixaodev.garageservice.domain.garage.valueobject
 
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
-import org.junit.jupiter.api.Test
 import java.time.LocalTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
 
 class CloseHourTest {
 

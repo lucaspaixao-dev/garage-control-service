@@ -2,17 +2,17 @@ package io.github.lucaspaixaodev.garageservice.infra.input.messaging
 
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.RegisterVehicleEventUseCase
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.VehicleEventCommand
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketEventType
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.jupiter.api.Test
 
 class VehicleEventConsumerTest {
 

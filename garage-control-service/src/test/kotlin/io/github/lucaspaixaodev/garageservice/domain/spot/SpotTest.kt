@@ -2,13 +2,13 @@ package io.github.lucaspaixaodev.garageservice.domain.spot
 
 import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
 import io.github.lucaspaixaodev.garageservice.domain.garage.Garage
-import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
 
 class SpotTest {
 

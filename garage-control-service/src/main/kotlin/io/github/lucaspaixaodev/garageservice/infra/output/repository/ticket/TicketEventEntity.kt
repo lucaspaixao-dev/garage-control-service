@@ -1,11 +1,11 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.ticket
 
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketEventType
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EmbeddedId
-import jakarta.persistence.EnumType
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import java.io.Serializable

@@ -1,11 +1,11 @@
 package io.github.lucaspaixaodev.garageservice.domain
 
-import org.junit.jupiter.api.Test
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertFailsWith
+import org.junit.jupiter.api.Test
 
 class IdTest {
 

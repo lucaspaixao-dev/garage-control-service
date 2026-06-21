@@ -6,12 +6,12 @@ import io.github.lucaspaixaodev.garageservice.application.garage.gateway.GarageG
 import io.github.lucaspaixaodev.garageservice.application.garage.gateway.GarageInfo
 import io.github.lucaspaixaodev.garageservice.application.garage.gateway.SpotInfo
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageApiException
+import java.math.BigDecimal
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
-import java.math.BigDecimal
 
 @Component
 class GarageClient(

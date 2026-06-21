@@ -12,4 +12,8 @@ interface SpotRepository {
     fun findById(id: Id): Spot?
 
     fun findByCoordinates(latitude: Double, longitude: Double): Spot?
+
+    fun countTotal(): Int
+
+    fun countOccupied(): Int
 }

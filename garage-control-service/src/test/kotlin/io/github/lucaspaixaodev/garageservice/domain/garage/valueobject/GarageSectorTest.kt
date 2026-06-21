@@ -1,9 +1,9 @@
 package io.github.lucaspaixaodev.garageservice.domain.garage.valueobject
 
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import org.junit.jupiter.api.Test
 
 class GarageSectorTest {
 

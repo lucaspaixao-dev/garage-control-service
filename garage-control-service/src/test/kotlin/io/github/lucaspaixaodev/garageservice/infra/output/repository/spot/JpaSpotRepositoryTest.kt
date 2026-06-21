@@ -6,7 +6,6 @@ import io.github.lucaspaixaodev.garageservice.domain.spot.Spot
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.util.Optional
 import java.util.UUID
@@ -14,6 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
 
 class JpaSpotRepositoryTest {
 
@@ -71,14 +71,14 @@ class JpaSpotRepositoryTest {
     fun `findByCoordinates reconstructs the spot`() {
         val id = UUID.randomUUID()
         every { entityRepository.findByLatitudeAndLongitude(-23.561684, -46.655981) } returns
-            SpotEntity(
-                id = id,
-                externalId = 1,
-                garageId = garage.id.value,
-                latitude = -23.561684,
-                longitude = -46.655981,
-                occupied = true,
-            )
+                SpotEntity(
+                    id = id,
+                    externalId = 1,
+                    garageId = garage.id.value,
+                    latitude = -23.561684,
+                    longitude = -46.655981,
+                    occupied = true,
+                )
 
         val spot = repository.findByCoordinates(latitude = -23.561684, longitude = -46.655981)
 
@@ -98,16 +98,16 @@ class JpaSpotRepositoryTest {
     fun `findById reconstructs the spot`() {
         val id = UUID.randomUUID()
         every { entityRepository.findById(id) } returns
-            Optional.of(
-                SpotEntity(
-                    id = id,
-                    externalId = 9,
-                    garageId = garage.id.value,
-                    latitude = -23.5,
-                    longitude = -46.6,
-                    occupied = false,
-                ),
-            )
+                Optional.of(
+                    SpotEntity(
+                        id = id,
+                        externalId = 9,
+                        garageId = garage.id.value,
+                        latitude = -23.5,
+                        longitude = -46.6,
+                        occupied = false,
+                    ),
+                )
 
         val spot = repository.findById(id = Id(id))
 
@@ -120,6 +120,15 @@ class JpaSpotRepositoryTest {
         every { entityRepository.findById(any()) } returns Optional.empty()
 
         assertNull(repository.findById(id = Id(UUID.randomUUID())))
+    }
+
+    @Test
+    fun `countTotal and countOccupied delegate to the entity repository`() {
+        every { entityRepository.count() } returns 30L
+        every { entityRepository.countByOccupiedTrue() } returns 12L
+
+        assertEquals(30, repository.countTotal())
+        assertEquals(12, repository.countOccupied())
     }
 
     @Test

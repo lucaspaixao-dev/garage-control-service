@@ -2,13 +2,31 @@ package io.github.lucaspaixaodev.garageservice.domain.garage
 
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
-import org.junit.jupiter.api.Test
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.OccupancyRate
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Test
 
 class GarageTest {
+
+    @Test
+    fun `hourlyPriceAt applies the dynamic multiplier for the occupancy to the base price`() {
+        val garage =
+            Garage.create(
+                sector = "A",
+                basePrice = BigDecimal("10.00"),
+                open = "00:00",
+                close = "23:59",
+                durationLimit = 1440,
+            )
+
+        // 5/10 = 50% occupancy -> base price (no change)
+        assertEquals("10.00", garage.hourlyPriceAt(OccupancyRate.of(occupied = 5, total = 10)).toString())
+        // 8/10 = 80% occupancy -> +25%
+        assertEquals("12.50", garage.hourlyPriceAt(OccupancyRate.of(occupied = 8, total = 10)).toString())
+    }
 
     @Test
     fun `create builds a garage with a generated id and value objects`() {

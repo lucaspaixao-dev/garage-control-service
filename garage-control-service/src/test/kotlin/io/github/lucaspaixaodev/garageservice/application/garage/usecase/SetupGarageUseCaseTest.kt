@@ -16,12 +16,12 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
 
 class SetupGarageUseCaseTest {
 
@@ -50,8 +50,20 @@ class SetupGarageUseCaseTest {
             GarageData(
                 garages =
                     listOf(
-                        GarageInfo(sector = "A", basePrice = BigDecimal("40.5"), openHour = "00:00", closeHour = "23:59", durationLimitMinutes = 1440),
-                        GarageInfo(sector = "B", basePrice = BigDecimal("4.1"), openHour = "08:00", closeHour = "23:59", durationLimitMinutes = 60),
+                        GarageInfo(
+                            sector = "A",
+                            basePrice = BigDecimal("40.5"),
+                            openHour = "00:00",
+                            closeHour = "23:59",
+                            durationLimitMinutes = 1440
+                        ),
+                        GarageInfo(
+                            sector = "B",
+                            basePrice = BigDecimal("4.1"),
+                            openHour = "08:00",
+                            closeHour = "23:59",
+                            durationLimitMinutes = 60
+                        ),
                     ),
                 spots =
                     listOf(
@@ -62,7 +74,10 @@ class SetupGarageUseCaseTest {
         val garageA = garage(sector = "A")
         val garageB = garage(sector = "B")
         every { garageGateway.fetch() } returns data
-        every { garageRepository.saveAll(garages = any()) } returns mapOf(GarageSector.A to garageA, GarageSector.B to garageB)
+        every { garageRepository.saveAll(garages = any()) } returns mapOf(
+            GarageSector.A to garageA,
+            GarageSector.B to garageB
+        )
         val savedSpots = slot<List<Spot>>()
         every { spotRepository.saveAll(spots = capture(savedSpots)) } just Runs
 
@@ -85,8 +100,24 @@ class SetupGarageUseCaseTest {
     fun `execute fails when a spot references a sector without a garage`() {
         val data =
             GarageData(
-                garages = listOf(GarageInfo(sector = "A", basePrice = BigDecimal("40.5"), openHour = "00:00", closeHour = "23:59", durationLimitMinutes = 1440)),
-                spots = listOf(SpotInfo(externalId = 11, sector = "B", latitude = -23.4, longitude = -46.5, occupied = true)),
+                garages = listOf(
+                    GarageInfo(
+                        sector = "A",
+                        basePrice = BigDecimal("40.5"),
+                        openHour = "00:00",
+                        closeHour = "23:59",
+                        durationLimitMinutes = 1440
+                    )
+                ),
+                spots = listOf(
+                    SpotInfo(
+                        externalId = 11,
+                        sector = "B",
+                        latitude = -23.4,
+                        longitude = -46.5,
+                        occupied = true
+                    )
+                ),
             )
         every { garageGateway.fetch() } returns data
         every { garageRepository.saveAll(garages = any()) } returns mapOf(GarageSector.A to garage(sector = "A"))

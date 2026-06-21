@@ -3,11 +3,11 @@ package io.github.lucaspaixaodev.garageservice.infra.input.messaging
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.RegisterVehicleEventUseCase
 import io.github.lucaspaixaodev.garageservice.application.ticket.usecase.VehicleEventCommand
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketEventType
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 @Component
 class VehicleEventConsumer(
@@ -29,7 +29,8 @@ class VehicleEventConsumer(
 
     private fun VehicleEventMessage.toCommand(): VehicleEventCommand =
         VehicleEventCommand(
-            type = TicketEventType.valueOf(eventType),
+            eventId = id,
+            type = TicketEventType.of(eventType),
             licensePlate = licensePlate,
             entryTime = entryTime?.toLocalDateTime(),
             exitTime = exitTime?.toLocalDateTime(),

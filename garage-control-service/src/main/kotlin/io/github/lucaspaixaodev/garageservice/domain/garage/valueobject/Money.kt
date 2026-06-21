@@ -23,5 +23,9 @@ value class Money private constructor(val amount: BigDecimal) {
         fun of(amount: String): Money = of(BigDecimal(amount))
     }
 
+    fun multipliedBy(factor: BigDecimal): Money = of(amount.multiply(factor))
+
+    fun times(quantity: Long): Money = of(amount.multiply(BigDecimal.valueOf(quantity)))
+
     override fun toString(): String = amount.toPlainString()
 }

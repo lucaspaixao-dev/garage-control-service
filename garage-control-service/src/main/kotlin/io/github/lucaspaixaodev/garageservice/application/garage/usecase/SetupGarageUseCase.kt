@@ -5,8 +5,8 @@ import io.github.lucaspaixaodev.garageservice.application.garage.gateway.SpotInf
 import io.github.lucaspaixaodev.garageservice.application.garage.repository.GarageRepository
 import io.github.lucaspaixaodev.garageservice.application.spot.repository.SpotRepository
 import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
-import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
 import io.github.lucaspaixaodev.garageservice.domain.garage.Garage
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
 import io.github.lucaspaixaodev.garageservice.domain.spot.Spot
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

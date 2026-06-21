@@ -5,9 +5,9 @@ import io.github.lucaspaixaodev.garageservice.application.garage.usecase.SetupGa
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
-import kotlin.test.assertEquals
 
 class GarageControllerTest {
 

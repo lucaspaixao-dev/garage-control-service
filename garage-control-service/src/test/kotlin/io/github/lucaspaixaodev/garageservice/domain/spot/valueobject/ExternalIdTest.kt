@@ -1,9 +1,9 @@
 package io.github.lucaspaixaodev.garageservice.domain.spot.valueobject
 
 import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import org.junit.jupiter.api.Test
 
 class ExternalIdTest {
 

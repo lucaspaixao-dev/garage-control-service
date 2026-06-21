@@ -3,9 +3,9 @@ package io.github.lucaspaixaodev.garageservice.infra.output.repository.spot
 import io.github.lucaspaixaodev.garageservice.application.spot.repository.SpotRepository
 import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.spot.Spot
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import java.util.UUID
 
 @Repository
 class JpaSpotRepository(
@@ -43,6 +43,10 @@ class JpaSpotRepository(
 
     override fun findByCoordinates(latitude: Double, longitude: Double): Spot? =
         spotEntityRepository.findByLatitudeAndLongitude(latitude, longitude)?.toDomain()
+
+    override fun countTotal(): Int = spotEntityRepository.count().toInt()
+
+    override fun countOccupied(): Int = spotEntityRepository.countByOccupiedTrue().toInt()
 
     private fun SpotEntity.toDomain(): Spot =
         Spot.restore(

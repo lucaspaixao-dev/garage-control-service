@@ -1,15 +1,18 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.garage
 
+import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.garage.Garage
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalTime
+import java.util.Optional
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import org.junit.jupiter.api.Test
 
 class JpaGarageRepositoryTest {
 
@@ -65,5 +68,34 @@ class JpaGarageRepositoryTest {
         // ...but the persisted fields come from the incoming garage.
         assertEquals("9.90", result[GarageSector.A]!!.basePrice.toString())
         assertEquals(BigDecimal("9.90"), savedEntity.captured.basePrice)
+    }
+
+    @Test
+    fun `findById rebuilds the garage from its entity`() {
+        val id = UUID.fromString("cb745afa-aa13-47c5-ac27-347dc169e156")
+        every { entityRepository.findById(id) } returns
+                Optional.of(
+                    GarageEntity(
+                        id = id,
+                        sector = GarageSector.A,
+                        basePrice = BigDecimal("10.00"),
+                        openHour = LocalTime.of(8, 0),
+                        closeHour = LocalTime.of(22, 0),
+                        durationLimitMinutes = 60,
+                    ),
+                )
+
+        val garage = repository.findById(id = Id.of(id.toString()))
+
+        assertEquals(id.toString(), garage!!.id.toString())
+        assertEquals(GarageSector.A, garage.sector)
+        assertEquals("10.00", garage.basePrice.toString())
+    }
+
+    @Test
+    fun `findById returns null when the garage is absent`() {
+        every { entityRepository.findById(any()) } returns Optional.empty()
+
+        assertNull(repository.findById(id = Id.generate()))
     }
 }

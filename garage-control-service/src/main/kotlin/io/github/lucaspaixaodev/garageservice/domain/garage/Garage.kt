@@ -1,11 +1,12 @@
 package io.github.lucaspaixaodev.garageservice.domain.garage
 
-import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.CloseHour
+import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.CloseHour
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.DurationLimit
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
-import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.Money
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.OccupancyRate
 import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.OpenHour
 import java.math.BigDecimal
 
@@ -17,6 +18,10 @@ class Garage private constructor(
     val closeHour: CloseHour,
     val durationLimit: DurationLimit
 ) {
+
+    /** Hourly price for a vehicle parking now, applying the dynamic multiplier for the current occupancy. */
+    fun hourlyPriceAt(occupancy: OccupancyRate): Money =
+        basePrice.multipliedBy(occupancy.priceMultiplier())
 
     companion object Factory {
         fun create(

@@ -3,15 +3,15 @@ package io.github.lucaspaixaodev.garageservice.infra.output.gateway.garage
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageApiException
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.springframework.web.client.RestClient
-import org.springframework.web.client.RestClientException
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.springframework.web.client.RestClient
+import org.springframework.web.client.RestClientException
 
 class GarageClientTest {
 
@@ -48,8 +48,20 @@ class GarageClientTest {
                     ),
                 spots =
                     listOf(
-                        GarageResponse.SpotItem(id = 1, sector = "A", lat = -23.561684, lng = -46.655981, occupied = true),
-                        GarageResponse.SpotItem(id = 2, sector = "A", lat = -23.561664, lng = -46.655961, occupied = false),
+                        GarageResponse.SpotItem(
+                            id = 1,
+                            sector = "A",
+                            lat = -23.561684,
+                            lng = -46.655981,
+                            occupied = true
+                        ),
+                        GarageResponse.SpotItem(
+                            id = 2,
+                            sector = "A",
+                            lat = -23.561664,
+                            lng = -46.655961,
+                            occupied = false
+                        ),
                     ),
             )
         every { responseSpec.body(GarageResponse::class.java) } returns response

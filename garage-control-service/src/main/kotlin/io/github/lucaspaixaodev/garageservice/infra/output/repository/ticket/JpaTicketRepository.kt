@@ -1,13 +1,18 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.ticket
 
 import io.github.lucaspaixaodev.garageservice.application.ticket.repository.TicketRepository
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.Money
 import io.github.lucaspaixaodev.garageservice.domain.ticket.Ticket
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketEvent
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketEventTime
-import io.github.lucaspaixaodev.garageservice.domain.ticket.TicketStatus
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketCharge
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEvent
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventTime
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketStatus
+import java.time.LocalDate
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import java.util.UUID
 
 @Repository
 class JpaTicketRepository(
@@ -38,13 +43,29 @@ class JpaTicketRepository(
         return entity.toDomain(events)
     }
 
-    private fun Ticket.toEntity(): TicketEntity =
-        TicketEntity(
+    override fun totalRevenue(sector: GarageSector, date: LocalDate): Money {
+        val total =
+            ticketEntityRepository.sumFareBySectorAndPaidAtBetween(
+                sector = sector,
+                start = date.atStartOfDay(),
+                end = date.plusDays(1).atStartOfDay(),
+            )
+        return Money.of(total)
+    }
+
+    private fun Ticket.toEntity(): TicketEntity {
+        val exitTime = events.firstOrNull { it.type == TicketEventType.EXIT }?.time?.value
+        return TicketEntity(
             id = id.value,
             licensePlate = vehicle.licensePlate,
             spotId = spotId?.value,
-            status = status
+            status = status,
+            sector = charge?.sector,
+            hourlyPrice = charge?.hourlyPrice?.amount,
+            fare = charge?.fare?.amount,
+            paidAt = charge?.fare?.let { exitTime },
         )
+    }
 
     private fun TicketEvent.toEntity(ticketId: UUID): TicketEventEntity =
         TicketEventEntity(
@@ -61,6 +82,17 @@ class JpaTicketRepository(
             licensePlate = licensePlate,
             spotId = spotId?.toString(),
             status = status,
-            events = events
+            events = events,
+            charge = toCharge(),
         )
+
+    private fun TicketEntity.toCharge(): TicketCharge? {
+        val sector = this.sector ?: return null
+        val hourlyPrice = this.hourlyPrice ?: return null
+        return TicketCharge(
+            sector = sector,
+            hourlyPrice = Money.of(hourlyPrice),
+            fare = fare?.let { Money.of(it) },
+        )
+    }
 }

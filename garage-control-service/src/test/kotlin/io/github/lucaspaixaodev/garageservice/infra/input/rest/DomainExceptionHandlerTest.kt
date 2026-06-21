@@ -4,10 +4,11 @@ import io.github.lucaspaixaodev.garageservice.domain.exception.GarageApiExceptio
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
 import io.github.lucaspaixaodev.garageservice.domain.exception.MoneyException
 import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
-import org.junit.jupiter.api.Test
-import org.springframework.http.HttpStatus
+import io.github.lucaspaixaodev.garageservice.domain.exception.TicketException
 import java.math.BigDecimal
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import org.springframework.http.HttpStatus
 
 class DomainExceptionHandlerTest {
 
@@ -26,6 +27,14 @@ class DomainExceptionHandlerTest {
         val response = handler.handleDomain(exception = SpotException.InvalidExternalId(value = 0))
 
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+    }
+
+    @Test
+    fun `ticket exception maps to 422`() {
+        val response = handler.handleDomain(exception = TicketException.InvalidLicensePlate())
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.statusCode)
+        assertEquals("Vehicle license plate must not be blank", response.body!!.message)
     }
 
     @Test

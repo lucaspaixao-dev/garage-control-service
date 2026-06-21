@@ -1,15 +1,30 @@
 package io.github.lucaspaixaodev.garageservice.domain.ticket
 
 import io.github.lucaspaixaodev.garageservice.domain.Id
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.Money
+import io.github.lucaspaixaodev.garageservice.domain.ticket.Ticket.Factory.FREE_MINUTES
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketCharge
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEvent
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventTime
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketEventType
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.TicketStatus
+import io.github.lucaspaixaodev.garageservice.domain.ticket.valueobject.Vehicle
+import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.math.ceil
 
 class Ticket private constructor(
     val id: Id,
     val vehicle: Vehicle,
-    var spotId: Id?,
+    private var _spotId: Id?,
     private var _status: TicketStatus,
     private var _events: MutableList<TicketEvent>,
+    private var _charge: TicketCharge?,
 ) {
+
+    val spotId: Id?
+        get() = _spotId
 
     val status: TicketStatus
         get() = _status
@@ -17,19 +32,48 @@ class Ticket private constructor(
     val events: List<TicketEvent>
         get() = _events
 
-    fun park(spotId: Id) {
-        this.spotId = spotId
+    /** Pricing snapshot taken when the vehicle parked, settled with the fare on exit; null until parked. */
+    val charge: TicketCharge?
+        get() = _charge
+
+    /**
+     * Parks the vehicle on the given spot, capturing the sector and the hourly price
+     * in effect at this moment so the fare is computed against the price the driver "saw".
+     */
+    fun park(
+        spotId: Id,
+        sector: GarageSector,
+        hourlyPrice: Money,
+    ) {
+        this._spotId = spotId
+        this._charge = TicketCharge(sector = sector, hourlyPrice = hourlyPrice)
         addEvent(type = TicketEventType.PARKED)
     }
 
     fun exit(exitTime: LocalDateTime) {
         addEvent(type = TicketEventType.EXIT, time = exitTime)
+        this._charge = _charge?.settled(fare = fareFor(exitTime = exitTime))
         _status = TicketStatus.CLOSED
     }
 
-    fun getFare() {
-        // TODO: compute fare from the garage base price and the parked duration.
+    /**
+     * Fare = charged hours × snapshot hourly price, where the first [FREE_MINUTES] are free
+     * and any started hour is billed in full (rounded up). A vehicle that exits without ever
+     * parking owes nothing.
+     */
+    private fun fareFor(exitTime: LocalDateTime): Money {
+        val hourlyPrice = _charge?.hourlyPrice ?: return Money.ZERO
+
+        val parkedMinutes = Duration.between(entryTime(), exitTime).toMinutes()
+        if (parkedMinutes <= FREE_MINUTES) return Money.ZERO
+
+        val chargedHours = ceil(parkedMinutes.toDouble() / MINUTES_PER_HOUR).toLong()
+        return hourlyPrice.times(quantity = chargedHours)
     }
+
+    private fun entryTime(): LocalDateTime =
+        _events.first { it.type == TicketEventType.ENTRY }.time?.value
+            ?: error("Ticket '$id' has no ENTRY time")
 
     private fun addEvent(
         type: TicketEventType,
@@ -39,6 +83,10 @@ class Ticket private constructor(
     }
 
     companion object Factory {
+
+        private const val FREE_MINUTES = 30L
+        private const val MINUTES_PER_HOUR = 60.0
+
         fun entry(
             licensePlate: String,
             entryTime: LocalDateTime,
@@ -47,9 +95,10 @@ class Ticket private constructor(
                 Ticket(
                     id = Id.generate(),
                     vehicle = Vehicle(licensePlate = licensePlate),
-                    spotId = null,
+                    _spotId = null,
                     _status = TicketStatus.OPEN,
                     _events = mutableListOf(),
+                    _charge = null,
                 )
             ticket.addEvent(type = TicketEventType.ENTRY, time = entryTime)
             return ticket
@@ -61,36 +110,15 @@ class Ticket private constructor(
             spotId: String?,
             status: TicketStatus,
             events: List<TicketEvent>,
+            charge: TicketCharge?,
         ): Ticket =
             Ticket(
                 id = Id.of(id),
                 vehicle = Vehicle(licensePlate = licensePlate),
-                spotId = spotId?.let { Id.of(it) },
+                _spotId = spotId?.let { Id.of(it) },
                 _status = status,
                 _events = events.toMutableList(),
+                _charge = charge,
             )
     }
-}
-
-data class Vehicle(
-    val licensePlate: String,
-)
-
-data class TicketEvent(
-    val type: TicketEventType,
-    val time: TicketEventTime? = null,
-)
-
-@JvmInline
-value class TicketEventTime(val value: LocalDateTime)
-
-enum class TicketEventType {
-    ENTRY,
-    PARKED,
-    EXIT,
-}
-
-enum class TicketStatus {
-    OPEN,
-    CLOSED,
 }

@@ -1,11 +1,12 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.garage
 
 import io.github.lucaspaixaodev.garageservice.application.garage.repository.GarageRepository
-import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
+import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.garage.Garage
+import io.github.lucaspaixaodev.garageservice.domain.garage.valueobject.GarageSector
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
-import java.util.UUID
 
 @Repository
 class JpaGarageRepository(
@@ -33,6 +34,19 @@ class JpaGarageRepository(
         logger.info("Upserted garages sectors=${persistedBySector.keys.joinToString { it.name }}")
         return persistedBySector
     }
+
+    override fun findById(id: Id): Garage? =
+        garageEntityRepository.findById(id.value).orElse(null)?.toDomain()
+
+    private fun GarageEntity.toDomain(): Garage =
+        Garage.restore(
+            id = id.toString(),
+            sector = sector.name,
+            basePrice = basePrice,
+            open = openHour.toString(),
+            close = closeHour.toString(),
+            durationLimit = durationLimitMinutes
+        )
 
     private fun Garage.reIdentified(id: UUID): Garage =
         Garage.restore(
