@@ -1,6 +1,7 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.spot
 
 import io.github.lucaspaixaodev.garageservice.application.spot.repository.SpotRepository
+import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.spot.Spot
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -30,6 +31,28 @@ class JpaSpotRepository(
 
         logger.info("Upserted ${entities.size} spots")
     }
+
+    override fun save(spot: Spot): Spot {
+        logger.info("Saving spot id=${spot.id} occupied=${spot.occupied}")
+        spotEntityRepository.save(spot.toEntity(spot.id.value))
+        return spot
+    }
+
+    override fun findById(id: Id): Spot? =
+        spotEntityRepository.findById(id.value).orElse(null)?.toDomain()
+
+    override fun findByCoordinates(latitude: Double, longitude: Double): Spot? =
+        spotEntityRepository.findByLatitudeAndLongitude(latitude, longitude)?.toDomain()
+
+    private fun SpotEntity.toDomain(): Spot =
+        Spot.restore(
+            id = id.toString(),
+            externalId = externalId,
+            garageId = garageId.toString(),
+            latitude = latitude,
+            longitude = longitude,
+            occupied = occupied
+        )
 
     private fun Spot.toEntity(id: UUID): SpotEntity =
         SpotEntity(

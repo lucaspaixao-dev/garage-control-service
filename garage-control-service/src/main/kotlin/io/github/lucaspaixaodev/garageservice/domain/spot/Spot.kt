@@ -12,8 +12,19 @@ class Spot private constructor(
     val garageId: Id,
     val latitude: Latitude,
     val longitude: Longitude,
-    val occupied: Boolean
+    private var _occupied: Boolean
 ) {
+
+    val occupied: Boolean
+        get() = _occupied
+
+    fun occupied() {
+        this._occupied = true
+    }
+
+    fun free() {
+        this._occupied = false
+    }
 
     companion object Factory {
         fun occupied(
@@ -76,7 +87,7 @@ class Spot private constructor(
             garageId = garageId,
             latitude = Latitude(latitude),
             longitude = Longitude(longitude),
-            occupied = occupied
+            _occupied = occupied
         )
     }
 }

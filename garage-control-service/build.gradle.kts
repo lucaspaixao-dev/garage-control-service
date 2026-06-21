@@ -74,12 +74,15 @@ kover {
                     "*Response",
                     "*Request",
                     "*Result",
+                    "*Command",
+                    "*Message",
                     "*GarageResponse*",
                 )
                 packages(
                     "io.github.lucaspaixaodev.garageservice.application.garage.gateway",
                     "io.github.lucaspaixaodev.garageservice.application.garage.repository",
                     "io.github.lucaspaixaodev.garageservice.application.spot.repository",
+                    "io.github.lucaspaixaodev.garageservice.application.ticket.repository",
                 )
             }
         }

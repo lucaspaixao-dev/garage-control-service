@@ -6,4 +6,6 @@ import java.util.UUID
 interface SpotEntityRepository : JpaRepository<SpotEntity, UUID> {
 
     fun findAllByExternalIdIn(externalIds: Collection<Int>): List<SpotEntity>
+
+    fun findByLatitudeAndLongitude(latitude: Double, longitude: Double): SpotEntity?
 }

@@ -1,5 +1,6 @@
 package io.github.lucaspaixaodev.garageservice.infra.output.repository.spot
 
+import io.github.lucaspaixaodev.garageservice.domain.Id
 import io.github.lucaspaixaodev.garageservice.domain.garage.Garage
 import io.github.lucaspaixaodev.garageservice.domain.spot.Spot
 import io.mockk.every
@@ -7,8 +8,11 @@ import io.mockk.mockk
 import io.mockk.slot
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.util.Optional
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class JpaSpotRepositoryTest {
@@ -61,5 +65,72 @@ class JpaSpotRepositoryTest {
         repository.saveAll(spots = listOf(spot))
 
         assertEquals(existingId, savedEntities.captured.single().id)
+    }
+
+    @Test
+    fun `findByCoordinates reconstructs the spot`() {
+        val id = UUID.randomUUID()
+        every { entityRepository.findByLatitudeAndLongitude(-23.561684, -46.655981) } returns
+            SpotEntity(
+                id = id,
+                externalId = 1,
+                garageId = garage.id.value,
+                latitude = -23.561684,
+                longitude = -46.655981,
+                occupied = true,
+            )
+
+        val spot = repository.findByCoordinates(latitude = -23.561684, longitude = -46.655981)
+
+        assertEquals(id, spot?.id?.value)
+        assertEquals(1, spot?.externalId?.value)
+        assertTrue(spot!!.occupied)
+    }
+
+    @Test
+    fun `findByCoordinates returns null when there is no spot`() {
+        every { entityRepository.findByLatitudeAndLongitude(any(), any()) } returns null
+
+        assertNull(repository.findByCoordinates(latitude = 0.0, longitude = 0.0))
+    }
+
+    @Test
+    fun `findById reconstructs the spot`() {
+        val id = UUID.randomUUID()
+        every { entityRepository.findById(id) } returns
+            Optional.of(
+                SpotEntity(
+                    id = id,
+                    externalId = 9,
+                    garageId = garage.id.value,
+                    latitude = -23.5,
+                    longitude = -46.6,
+                    occupied = false,
+                ),
+            )
+
+        val spot = repository.findById(id = Id(id))
+
+        assertEquals(id, spot?.id?.value)
+        assertFalse(spot!!.occupied)
+    }
+
+    @Test
+    fun `findById returns null when missing`() {
+        every { entityRepository.findById(any()) } returns Optional.empty()
+
+        assertNull(repository.findById(id = Id(UUID.randomUUID())))
+    }
+
+    @Test
+    fun `save persists the spot by its id`() {
+        val spot = Spot.occupied(garage = garage, externalId = 1, latitude = -23.5, longitude = -46.6)
+        val saved = slot<SpotEntity>()
+        every { entityRepository.save(capture(saved)) } answers { saved.captured }
+
+        repository.save(spot = spot)
+
+        assertEquals(spot.id.value, saved.captured.id)
+        assertTrue(saved.captured.occupied)
     }
 }

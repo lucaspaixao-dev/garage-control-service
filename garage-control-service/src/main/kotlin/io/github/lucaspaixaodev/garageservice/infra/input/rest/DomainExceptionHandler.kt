@@ -5,6 +5,7 @@ import io.github.lucaspaixaodev.garageservice.domain.exception.GarageApiExceptio
 import io.github.lucaspaixaodev.garageservice.domain.exception.GarageException
 import io.github.lucaspaixaodev.garageservice.domain.exception.MoneyException
 import io.github.lucaspaixaodev.garageservice.domain.exception.SpotException
+import io.github.lucaspaixaodev.garageservice.domain.exception.TicketException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,6 +29,7 @@ class DomainExceptionHandler {
                 is GarageException -> HttpStatus.UNPROCESSABLE_ENTITY
                 is SpotException -> HttpStatus.UNPROCESSABLE_ENTITY
                 is MoneyException -> HttpStatus.UNPROCESSABLE_ENTITY
+                is TicketException -> HttpStatus.UNPROCESSABLE_ENTITY
             }
 
         if (status.is5xxServerError) {

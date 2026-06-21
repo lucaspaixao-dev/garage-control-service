@@ -24,4 +24,13 @@ sealed class SpotException(
         externalId: Int,
         sector: String,
     ) : SpotException("Spot '$externalId' references sector '$sector' that has no garage")
+
+    class NotFoundForCoordinates(
+        latitude: Double,
+        longitude: Double,
+    ) : SpotException("No spot found at coordinates ($latitude, $longitude)")
+
+    class NotFound(
+        id: String,
+    ) : SpotException("Spot '$id' not found")
 }
