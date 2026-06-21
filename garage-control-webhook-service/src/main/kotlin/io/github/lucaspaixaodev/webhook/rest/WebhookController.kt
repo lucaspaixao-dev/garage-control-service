@@ -3,13 +3,13 @@ package io.github.lucaspaixaodev.webhook.rest
 import io.github.lucaspaixaodev.webhook.messaging.VehicleEventPublisher
 import io.github.lucaspaixaodev.webhook.persistence.VehicleEventItem
 import io.github.lucaspaixaodev.webhook.persistence.VehicleEventRepository
+import java.time.Instant
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.time.Instant
-import java.util.UUID
 
 @RestController
 class WebhookController(
