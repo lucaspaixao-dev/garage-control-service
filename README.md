@@ -391,6 +391,78 @@ O webhook service ainda grava numa tabela DynamoDB `webhook_events` (PK `id`).
 - **Eventos órfãos** (PARKED/EXIT sem ticket aberto) são **ignorados em silêncio** (lançar erro
   travaria o grupo de mensagens FIFO para sempre).
 
+### 🧭 Rule → code map / Mapa: regra → código
+
+**EN** — Each requirement below is highlighted next to the exact snippet that implements it.
+**PT** — Cada requisito abaixo está destacado ao lado do trecho exato que o implementa.
+
+#### ① Ao entrar um veículo, marque uma vaga como ocupada
+> A vaga é ocupada no evento **PARKED** (quando o carro de fato estaciona). / The spot is occupied on **PARKED**.
+
+[`RegisterVehicleEventUseCase.kt:89`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/application/ticket/usecase/RegisterVehicleEventUseCase.kt#L89) · [`Spot.kt:21`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/spot/Spot.kt#L21)
+```kotlin
+// handleParked(...)
+spot.occupied()                 // Spot.occupied() -> _occupied = true
+spotRepository.save(spot = spot)
+ticket.park(spotId = spot.id, sector = garage.sector, hourlyPrice = hourlyPrice)
+```
+
+#### ② Ao sair, marque a vaga como disponível e calcule o valor a pagar
+[`RegisterVehicleEventUseCase.kt:105`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/application/ticket/usecase/RegisterVehicleEventUseCase.kt#L105) · [`Spot.kt:25`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/spot/Spot.kt#L25)
+```kotlin
+// handleExit(...)
+ticket.spotId?.let { spotId ->
+    spotRepository.findById(id = spotId)?.let { spot ->
+        spot.free()                 // Spot.free() -> _occupied = false
+        spotRepository.save(spot = spot)
+    }
+}
+ticket.exit(exitTime = command.exitTime ?: LocalDateTime.now())  // computes the fare + closes
+```
+
+**Tarifa / Fare** — primeiros 30 min grátis, depois hora cheia (inclusive a 1ª), arredonda pra cima:
+[`Ticket.kt:64`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/ticket/Ticket.kt#L64) · constante [`FREE_MINUTES`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/ticket/Ticket.kt#L91)
+```kotlin
+private fun fareFor(exitTime: LocalDateTime): Money {
+    val hourlyPrice = _charge?.hourlyPrice ?: return Money.ZERO    // basePrice × multiplier (snapshot no PARKED)
+    val parkedMinutes = Duration.between(entryTime(), exitTime).toMinutes()
+    if (parkedMinutes <= FREE_MINUTES) return Money.ZERO           // primeiros 30 min grátis
+    val chargedHours = ceil(parkedMinutes.toDouble() / MINUTES_PER_HOUR).toLong()  // arredonda pra cima
+    return hourlyPrice.times(quantity = chargedHours)              // tarifa fixa por hora, inclusive a 1ª
+}
+```
+> `hourlyPrice` é o snapshot `basePrice × multiplicador` ([`Garage.kt:23`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/garage/Garage.kt#L23)), capturado no PARKED. / It is the `basePrice × multiplier` snapshot taken at PARKED.
+
+#### ③ Se o estacionamento estiver cheio, não permita novas entradas
+> "qualquer um dos setores" = ocupação **geral** (todas as vagas). / overall occupancy across all spots.
+
+[`RegisterVehicleEventUseCase.kt:45`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/application/ticket/usecase/RegisterVehicleEventUseCase.kt#L45) · [`OccupancyRate.kt:27`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/garage/valueobject/OccupancyRate.kt#L27)
+```kotlin
+// handleEntry(...)
+if (currentOccupancy().isFull) {                                 // isFull -> value >= 1.0 (100%)
+    logger.warn("Skipping ENTRY for '${command.licensePlate}': garage is full")
+    return
+}
+```
+
+#### Regra de preço dinâmico (faixas de lotação)
+[`OccupancyRate.kt:19`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/garage/valueobject/OccupancyRate.kt#L19) · aplicado em [`Garage.kt:23`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/garage/Garage.kt#L23)
+```kotlin
+fun priceMultiplier(): BigDecimal =
+    when {
+        value < LOW   -> DISCOUNT   // < 25%   -> 0.90  (-10%)
+        value <= MID  -> BASE       // <= 50%  -> 1.00  ( 0%)
+        value <= HIGH -> SURGE      // <= 75%  -> 1.10  (+10%)
+        else          -> PEAK       // <= 100% -> 1.25  (+25%)
+    }
+// Garage.hourlyPriceAt(occupancy) = basePrice.multipliedBy(occupancy.priceMultiplier())
+```
+
+#### Regra de lotação (100% fecha; reabre na saída)
+> Com 100% a entrada é barrada (`isFull`); ao sair, `spot.free()` derruba a ocupação abaixo de 100% e as entradas voltam a ser aceitas — sem nenhum estado extra. / At 100% entries are blocked; on EXIT, `spot.free()` drops occupancy below 100% and entries are accepted again.
+
+[`OccupancyRate.kt:27`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/domain/garage/valueobject/OccupancyRate.kt#L27) (gate na entrada — ③) + [`RegisterVehicleEventUseCase.kt:105`](garage-control-service/src/main/kotlin/io/github/lucaspaixaodev/garageservice/application/ticket/usecase/RegisterVehicleEventUseCase.kt#L105) (libera a vaga no EXIT — ②).
+
 ---
 
 ## 🔌 API endpoints
