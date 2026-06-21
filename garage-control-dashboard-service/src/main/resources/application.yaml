@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: garage-control-dashboard-service
+  datasource:
+    # Reads the same database garage-control-service owns; it never writes or migrates it.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/garage}
+    username: ${SPRING_DATASOURCE_USERNAME:garage}
+    password: ${SPRING_DATASOURCE_PASSWORD:garage}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  # garage-control-service owns the schema; this service must not run migrations.
+  flyway:
+    enabled: false
+  cloud:
+    aws:
+      region:
+        static: ${AWS_REGION:us-east-1}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+      endpoint: ${AWS_ENDPOINT:http://localhost:4566}
+
+dashboard:
+  events:
+    queue-name: ${DASHBOARD_EVENTS_QUEUE:dashboard-events}
+
+server:
+  port: ${SERVER_PORT:8081}
